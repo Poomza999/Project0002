@@ -1,0 +1,245 @@
+﻿@model Apartment.Models.ViewModels.DormFormViewModel
+@{
+    ViewData["Title"] = "แก้ไขหอพัก";
+}
+
+<div class="d-flex align-items-center gap-2 mb-4">
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> กลับ
+    </a>
+    <h4 class="mb-0">แก้ไขหอพัก</h4>
+</div>
+
+<div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle"></i> หลังกด "บันทึกและส่งอนุมัติ" ข้อมูลจะถูกส่งให้ Admin ตรวจสอบใหม่
+</div>
+
+@* ฟอร์มแก้ไขข้อมูล *@
+<form asp-action="Edit" asp-route-id="@Model.DormID"
+      method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+
+    @* ข้อมูลทั่วไป *@
+    <div class="card shadow-sm mb-3">
+        <div class="card-header fw-bold">
+            <i class="bi bi-info-circle"></i> ข้อมูลทั่วไป
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="DormName" class="form-label">ชื่อหอพัก *</label>
+                    <input asp-for="DormName" class="form-control" />
+                    <span asp-validation-for="DormName" class="text-danger small"></span>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="Price" class="form-label">ราคา (บาท/เดือน) *</label>
+                    <input asp-for="Price" class="form-control" type="number" />
+                    <span asp-validation-for="Price" class="text-danger small"></span>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="Phone" class="form-label">เบอร์ติดต่อ</label>
+                    <input asp-for="Phone" class="form-control" />
+                </div>
+                <div class="col-12">
+                    <label asp-for="Address" class="form-label">ที่อยู่ *</label>
+                    <input asp-for="Address" class="form-control" />
+                    <span asp-validation-for="Address" class="text-danger small"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* ประเภทห้อง *@
+    <div class="card shadow-sm mb-3">
+        <div class="card-header fw-bold">
+            <i class="bi bi-door-open"></i> ประเภทห้อง
+        </div>
+        <div class="card-body">
+            @foreach (var group in Model.RoomTypes)
+            {
+                <div class="mb-3">
+                    <div class="text-muted small fw-bold mb-2">@group.Key</div>
+                    <div class="row g-2">
+                        @foreach (var item in group.Value)
+                        {
+                            <div class="col-6 col-md-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox"
+                                           name="SelectedRoomTypeIDs" value="@item.Value"
+                                           id="rt_@item.Value"
+                                    @(Model.SelectedRoomTypeIDs.Contains(int.Parse(item.Value)) ? "checked" : "") />
+                                    <label class="form-check-label" for="rt_@item.Value">
+                                        @item.Text
+                                    </label>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    @* สิ่งอำนวยความสะดวก *@
+    <div class="card shadow-sm mb-3">
+        <div class="card-header fw-bold">
+            <i class="bi bi-stars"></i> สิ่งอำนวยความสะดวก
+        </div>
+        <div class="card-body">
+            @foreach (var group in Model.AllAmenities)
+            {
+                <div class="mb-3">
+                    <div class="text-muted small fw-bold mb-2">@group.Key</div>
+                    <div class="row g-2">
+                        @foreach (var item in group.Value)
+                        {
+                            <div class="col-6 col-md-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox"
+                                           name="SelectedAmenityIDs" value="@item.Value"
+                                           id="am_@item.Value"
+                                    @(Model.SelectedAmenityIDs.Contains(int.Parse(item.Value)) ? "checked" : "") />
+                                    <label class="form-check-label" for="am_@item.Value">
+                                        @item.Text
+                                    </label>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    @* เพิ่มรูปใหม่ *@
+    <div class="card shadow-sm mb-3">
+        <div class="card-header fw-bold">
+            <i class="bi bi-plus-circle"></i> เพิ่มรูปภาพใหม่
+        </div>
+        <div class="card-body">
+            <input type="file" name="ImageFiles" class="form-control"
+                   accept="image/*" multiple onchange="previewImages(this)" />
+            <div class="small text-muted mt-1">สามารถเลือกได้หลายรูปพร้อมกัน</div>
+            <div id="imagePreview" class="d-flex flex-wrap gap-2 mt-3"></div>
+        </div>
+    </div>
+
+    @* รูปภาพปัจจุบัน — อยู่นอกฟอร์ม ลบได้เลยไม่ต้อง Submit *@
+    @if (Model.ExistingImages.Any())
+    {
+        <div class="card shadow-sm mb-3">
+            <div class="card-header fw-bold">
+                <i class="bi bi-images"></i> รูปภาพปัจจุบัน
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2" id="existingImages">
+                    @foreach (var img in Model.ExistingImages)
+                    {
+                        <div class="position-relative" id="imgBox_@img.ImageID">
+                            <img src="@img.ImagePath" class="img-thumbnail"
+                                 style="width:120px;height:100px;object-fit:cover;" />
+                            <button type="button"
+                                    class="btn btn-danger btn-sm py-0 px-1"
+                                    style="position:absolute;top:4px;right:4px;"
+                                    onclick="confirmDelete(@img.ImageID, @Model.DormID, '@img.ImagePath')"
+                                    title="ลบรูป">
+                                <i class="bi bi-x"></i>
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+
+    
+    @* Modal ยืนยันลบรูป *@
+    <div class="modal fade" id="deleteImageModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <h6 class="modal-title text-danger">
+                        <i class="bi bi-exclamation-triangle-fill"></i> ยืนยันลบรูปภาพ
+                    </h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center py-3">
+                    <img id="previewDeleteImg" src="" class="img-thumbnail mb-3"
+                         style="width:150px;height:120px;object-fit:cover;" />
+                    <p class="mb-0 small text-muted">รูปนี้จะถูกลบออกถาวร</p>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-secondary btn-sm"
+                            data-bs-dismiss="modal">
+                        <i class="bi bi-x"></i> ยกเลิก
+                    </button>
+                    <button type="button" class="btn btn-danger btn-sm"
+                            id="confirmDeleteBtn">
+                        <i class="bi bi-trash"></i> ลบรูปนี้
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary px-4">
+        <i class="bi bi-send"></i> บันทึกและส่งอนุมัติ
+    </button>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        let currentImageID = null;
+        let currentDormID = null;
+        let token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+        function confirmDelete(imageID, dormID, imagePath) {
+            currentImageID = imageID;
+            currentDormID = dormID;
+            document.getElementById('previewDeleteImg').src = imagePath;
+            new bootstrap.Modal(document.getElementById('deleteImageModal')).show();
+        }
+
+        document.getElementById('confirmDeleteBtn').addEventListener('click', function () {
+            if (!currentImageID || !currentDormID) return;
+
+            fetch('/Dorm/DeleteImage', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `imageID=${currentImageID}&dormID=${currentDormID}&__RequestVerificationToken=${encodeURIComponent(token)}`
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // ลบกล่องรูปออกจากหน้าเลย ไม่ต้อง Reload
+                    const box = document.getElementById('imgBox_' + currentImageID);
+                    if (box) box.remove();
+                    bootstrap.Modal.getInstance(document.getElementById('deleteImageModal')).hide();
+                } else {
+                    alert('เกิดข้อผิดพลาด: ' + data.message);
+                }
+            })
+            .catch(() => alert('เกิดข้อผิดพลาดในการเชื่อมต่อ'));
+        });
+
+        function previewImages(input) {
+            const preview = document.getElementById('imagePreview');
+            preview.innerHTML = '';
+            if (input.files && input.files.length > 0) {
+                Array.from(input.files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = e => {
+                        preview.innerHTML += `<div>
+                            <img src="${e.target.result}" class="img-thumbnail"
+                                style="width:120px;height:100px;object-fit:cover;" />
+                        </div>`;
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+        }
+    </script>
+}

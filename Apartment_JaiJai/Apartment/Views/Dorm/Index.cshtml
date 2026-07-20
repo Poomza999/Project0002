@@ -1,0 +1,131 @@
+﻿@model IEnumerable<Apartment.Models.Entities.Dormitory>
+@{
+    ViewData["Title"] = "จัดการหอพัก";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0">
+        <i class="bi bi-house"></i> หอพักของฉัน
+    </h4>
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> เพิ่มหอพัก
+    </a>
+</div>
+
+@* สรุปสถานะ *@
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card text-center border-0 bg-light">
+            <div class="card-body py-3">
+                <div class="fs-3 fw-bold text-success">
+                    @Model.Count(d => d.Status == "Approved")
+                </div>
+                <div class="small text-muted">Approved</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center border-0 bg-light">
+            <div class="card-body py-3">
+                <div class="fs-3 fw-bold text-warning">
+                    @Model.Count(d => d.Status == "Pending")
+                </div>
+                <div class="small text-muted">Pending</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center border-0 bg-light">
+            <div class="card-body py-3">
+                <div class="fs-3 fw-bold text-info">
+                    @Model.Count(d => d.Status == "PendingEdit")
+                </div>
+                <div class="small text-muted">Pending Edit</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center border-0 bg-light">
+            <div class="card-body py-3">
+                <div class="fs-3 fw-bold text-danger">
+                    @Model.Count(d => d.Status == "Rejected")
+                </div>
+                <div class="small text-muted">Rejected</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead style="background-color:#f8f9fa;">
+                <tr>
+                    <th>ชื่อหอพัก</th>
+                    <th>ประเภท</th>
+                    <th>ราคา</th>
+                    <th>สถานะ</th>
+                    <th>จัดการ</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">
+                            ยังไม่มีหอพัก
+                            <a asp-action="Create" class="ms-2">เพิ่มหอพักแรก</a>
+                        </td>
+                    </tr>
+                }
+                @foreach (var dorm in Model)
+                {
+                    <tr>
+                        <td>@dorm.DormName</td>
+                        <td>@string.Join(", ", dorm.DormRoomTypes.Select(r => r.RoomType.Name))</td>
+                        <td>@dorm.Price.ToString("N0") บาท</td>
+                        <td>
+                            @if (dorm.Status == "Approved")
+                            {
+                                <span class="badge bg-success">Approved</span>
+                            }
+                            else if (dorm.Status == "Pending")
+                            {
+                                <span class="badge bg-warning text-dark">Pending</span>
+                            }
+                            else if (dorm.Status == "PendingEdit")
+                            {
+                                <span class="badge bg-info text-dark">Pending Edit</span>
+                            }
+                            else if (dorm.Status == "Rejected")
+                            {
+                                <span class="badge bg-danger">Rejected</span>
+                                if (!string.IsNullOrEmpty(dorm.RejectReason))
+                                {
+                                    <div class="small text-danger mt-1">
+                                        <i class="bi bi-exclamation-circle"></i> @dorm.RejectReason
+                                    </div>
+                                }
+                            }
+                        </td>
+                        <td>
+                            @if (dorm.Status == "Approved" || dorm.Status == "Rejected")
+                            {
+                                <a asp-action="Edit" asp-route-id="@dorm.DormID"
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-pencil"></i> แก้ไข
+                                </a>
+                            }
+                            else
+                            {
+                                <button class="btn btn-sm btn-outline-secondary" disabled>
+                                    <i class="bi bi-clock"></i> รออนุมัติ
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

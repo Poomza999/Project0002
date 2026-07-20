@@ -1,0 +1,70 @@
+﻿@model Apartment.Models.ViewModels.LoginViewModel
+@{
+    ViewData["Title"] = "เข้าสู่ระบบ";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h4 class="text-center mb-1">เข้าสู่ระบบเจ้าของหอพัก</h4>
+                <p class="text-center text-muted small mb-4">จัดการข้อมูลหอพักของคุณ</p>
+
+                <form asp-action="Login" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div asp-validation-summary="All" class="alert alert-danger d-none" id="valSummary"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label">Email</label>
+                        <input asp-for="Email" class="form-control" placeholder="user@email.com" />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label">รหัสผ่าน</label>
+                        <div class="input-group">
+                            <input asp-for="Password" class="form-control" placeholder="P a s s w o r d" id="loginPassword" />
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('loginPassword', 'eyeLogin')">
+                                <i class="bi bi-eye" id="eyeLogin"></i>
+                            </button>
+                        </div>
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">เข้าสู่ระบบ</button>
+                </form>
+
+                <hr />
+                <p class="text-center small mb-0">
+                    ยังไม่มีบัญชี?
+                    <a asp-action="Register">สมัครสมาชิก</a>
+                </p>
+                <p class="text-center small mt-2">
+                    <a asp-controller="Home" asp-action="Index">← กลับหน้าหลัก</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        function togglePassword(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            }
+        }
+    </script>
+}

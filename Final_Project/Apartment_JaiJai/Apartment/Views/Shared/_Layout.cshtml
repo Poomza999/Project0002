@@ -1,0 +1,316 @@
+﻿<!DOCTYPE html>
+<html lang="th" data-bs-theme="light">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - หอพัก NPRU</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <style>
+            [data-bs-theme="light"] {
+                --navbar-bg: #1a3a6b;
+            }
+
+            [data-bs-theme="dark"] {
+                --navbar-bg: #0d1b2a;
+            }
+
+            .navbar-custom {
+                background-color: var(--navbar-bg) !important;
+            }
+
+            #themeToggle {
+                cursor: pointer;
+                border: 1px solid rgba(255,255,255,0.4);
+                border-radius: 20px;
+                padding: 4px 12px;
+                color: white;
+                background: transparent;
+                font-size: 13px;
+            }
+
+                #themeToggle:hover {
+                    background: rgba(255,255,255,0.15);
+                }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
+        <div class="container">
+            <a class="navbar-brand fw-bold" asp-controller="Home" asp-action="Index">
+                <i class="bi bi-building"></i> DormFinder NPRU
+            </a>
+            <div class="navbar-nav ms-auto d-flex flex-row align-items-center gap-2">
+
+                @* ปุ่ม Dark/Light Mode *@
+                <button id="themeToggle" onclick="toggleTheme()">
+                    <i class="bi bi-moon-stars-fill" id="themeIcon"></i>
+                    <span id="themeText">Dark</span>
+                </button>
+
+                @if (Context.Session.GetString("UserID") != null)
+                {
+                    <span class="navbar-text text-white small">
+                        สวัสดี, @Context.Session.GetString("UserName")
+                    </span>
+                    @if (Context.Session.GetString("UserRole") == "Owner")
+                    {
+                        <a class="btn btn-outline-light btn-sm" asp-controller="Dorm" asp-action="Index">
+                            <i class="bi bi-house"></i> จัดการหอพัก
+                        </a>
+                    }
+                    <a class="btn btn-outline-light btn-sm" asp-controller="Account" asp-action="Logout">
+                        <i class="bi bi-box-arrow-right"></i> ออกจากระบบ
+                    </a>
+                }
+                else
+                {
+                    <a class="btn btn-outline-light btn-sm" asp-controller="Account" asp-action="Login">
+                        <i class="bi bi-person"></i> เข้าสู่ระบบ
+                    </a>
+                    <a class="btn btn-outline-light btn-sm" asp-controller="Account" asp-action="Register">
+                        <i class="bi bi-person-plus"></i> สมัครสมาชิก
+                    </a>
+                    <a class="btn btn-outline-light btn-sm" asp-controller="Admin" asp-action="Login">
+                        <i class="bi bi-shield"></i> Admin
+                    </a>
+                }
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show">
+                <i class="bi bi-check-circle"></i> @TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show">
+                <i class="bi bi-exclamation-circle"></i> @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        @RenderBody()
+    </div>
+
+    @* Button Chatbot } *@
+    <div id="chatWidget" style="position:fixed;bottom:24px;right:24px;z-index:9999;">
+
+        @* ปุ่มลอย *@
+        <button onclick="toggleChat()"
+                style="width:56px;height:56px;border-radius:50%;background:#1a3a6b;border:none;
+            box-shadow:0 4px 12px rgba(0,0,0,0.3);cursor:pointer;position:relative;"
+                title="DormBot">
+            <i class="bi bi-robot text-white fs-5" id="chatBtnIcon"></i>
+            <span id="chatNotiBadge"
+                  style="position:absolute;top:0;right:0;background:red;color:white;
+            border-radius:50%;width:16px;height:16px;font-size:10px;
+            display:flex;align-items:center;justify-content:center;">1</span>
+        </button>
+
+        @* กล่องแชท *@
+        <div id="chatBox"
+             style="display:none;position:absolute;bottom:68px;right:0;
+            width:320px;background:var(--bs-body-bg);
+            border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,0.2);
+            border:1px solid var(--bs-border-color);overflow:hidden;">
+
+            @* Header *@
+            <div style="background:#1a3a6b;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-robot text-white"></i>
+                    <span class="text-white fw-bold small">DormBot</span>
+                    <span style="width:8px;height:8px;background:#4ade80;border-radius:50%;display:inline-block;"></span>
+                </div>
+                <button onclick="toggleChat()"
+                        style="background:none;border:none;color:white;cursor:pointer;padding:0;">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            @* ข้อความแชท *@
+            <div id="chatMessages"
+                 style="height:300px;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px;">
+                <div class="d-flex gap-2 align-items-start">
+                    <div style="width:28px;height:28px;border-radius:50%;background:#1a3a6b;
+                        display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <i class="bi bi-robot text-white" style="font-size:12px;"></i>
+                    </div>
+                    <div style="background:var(--bs-secondary-bg);padding:8px 12px;
+                        border-radius:0 12px 12px 12px;font-size:13px;max-width:80%;">
+                        สวัสดีครับ! ผม DormBot 😊<br />
+                        ถามเรื่องหอพักได้เลยครับ เช่น<br />
+                        <span style="color:#1a3a6b;cursor:pointer;" onclick="quickAsk('หอราคาไม่เกิน 3000')">
+                            👉 หอราคาไม่เกิน 3,000
+                        </span><br />
+                        <span style="color:#1a3a6b;cursor:pointer;" onclick="quickAsk('หอที่มีแอร์')">
+                            👉 หอที่มีแอร์
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            @* ช่องพิมพ์ *@
+            <div style="padding:8px;border-top:1px solid var(--bs-border-color);display:flex;gap:8px;">
+                <input type="text" id="floatChatInput" class="form-control form-control-sm"
+                       placeholder="พิมพ์คำถาม..."
+                       onkeydown="if(event.key==='Enter') floatSend()" />
+                <button class="btn btn-primary btn-sm px-3" onclick="floatSend()">
+                    <i class="bi bi-send-fill"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+            let chatOpen = false;
+
+            function toggleChat() {
+                chatOpen = !chatOpen;
+                document.getElementById('chatBox').style.display = chatOpen ? 'block' : 'none';
+                document.getElementById('chatBtnIcon').className = chatOpen ? 'bi bi-x-lg text-white fs-5' : 'bi bi-robot text-white fs-5';
+                document.getElementById('chatNotiBadge').style.display = chatOpen ? 'none' : 'none';
+                if (chatOpen) document.getElementById('floatChatInput').focus();
+            }
+
+            function quickAsk(text) {
+                document.getElementById('floatChatInput').value = text;
+                floatSend();
+            }
+
+            function addFloatMsg(text, isUser) {
+                const box = document.getElementById('chatMessages');
+                if (isUser) {
+                    box.innerHTML += `
+                        <div class="d-flex gap-2 align-items-start justify-content-end">
+                            <div style="background:#1a3a6b;color:white;padding:8px 12px;
+                                        border-radius:12px 0 12px 12px;font-size:13px;max-width:80%;">
+                                ${text}
+                            </div>
+                            <div style="width:28px;height:28px;border-radius:50%;background:#6c757d;
+                                        display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <i class="bi bi-person-fill text-white" style="font-size:12px;"></i>
+                            </div>
+                        </div>`;
+                } else {
+                    box.innerHTML += `
+                        <div class="d-flex gap-2 align-items-start">
+                            <div style="width:28px;height:28px;border-radius:50%;background:#1a3a6b;
+                                        display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <i class="bi bi-robot text-white" style="font-size:12px;"></i>
+                            </div>
+                            <div style="background:var(--bs-secondary-bg);padding:8px 12px;
+                                        border-radius:0 12px 12px 12px;font-size:13px;max-width:80%;
+                                        white-space:pre-line;">
+                                ${text}
+                            </div>
+                        </div>`;
+                }
+                box.scrollTop = box.scrollHeight;
+            }
+
+            function addTypingIndicator() {
+                const box = document.getElementById('chatMessages');
+                box.innerHTML += `
+                    <div class="d-flex gap-2 align-items-start" id="floatTyping">
+                        <div style="width:28px;height:28px;border-radius:50%;background:#1a3a6b;
+                                    display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            <i class="bi bi-robot text-white" style="font-size:12px;"></i>
+                        </div>
+                        <div style="background:var(--bs-secondary-bg);padding:8px 12px;border-radius:0 12px 12px 12px;">
+                            <div style="display:flex;gap:4px;align-items:center;height:16px;">
+                                <div style="width:6px;height:6px;border-radius:50%;background:#6c757d;animation:bounce 1s infinite;"></div>
+                                <div style="width:6px;height:6px;border-radius:50%;background:#6c757d;animation:bounce 1s infinite 0.2s;"></div>
+                                <div style="width:6px;height:6px;border-radius:50%;background:#6c757d;animation:bounce 1s infinite 0.4s;"></div>
+                            </div>
+                        </div>
+                    </div>`;
+                box.scrollTop = box.scrollHeight;
+            }
+
+            async function floatSend() {
+                const input = document.getElementById('floatChatInput');
+                const msg = input.value.trim();
+                if (!msg) return;
+
+                input.value = '';
+                input.disabled = true;
+
+                addFloatMsg(msg, true);
+                addTypingIndicator();
+
+                try {
+                    const res = await fetch('/Chat/Send', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: msg })
+                    });
+                    const data = await res.json();
+                    document.getElementById('floatTyping')?.remove();
+                    addFloatMsg(data.reply, false);
+                } catch {
+                    document.getElementById('floatTyping')?.remove();
+                    addFloatMsg('ขออภัยครับ เกิดข้อผิดพลาด กรุณาลองใหม่', false);
+                }
+
+                input.disabled = false;
+                input.focus();
+            }
+    </script>
+        <style>
+                @@keyframes bounce {
+                    0%, 80%, 100% {
+                        transform: translateY(0);
+                    }
+
+                    40% {
+                        transform: translateY(-6px);
+                    }
+                }
+        </style>
+
+    @* Chatbot } *@
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // โหลด Theme ที่บันทึกไว้
+        function loadTheme() {
+        const saved = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-bs-theme', saved);
+        updateIcon(saved);
+        }
+
+        // สลับ Theme
+        function toggleTheme() {
+        const current = document.documentElement.getAttribute('data-bs-theme');
+        const next = current === 'light' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-bs-theme', next);
+        localStorage.setItem('theme', next);
+        updateIcon(next);
+        }
+
+        // อัปเดตไอคอนและข้อความ
+        function updateIcon(theme) {
+        const icon = document.getElementById('themeIcon');
+        const text = document.getElementById('themeText');
+        if (theme === 'dark') {
+        icon.className = 'bi bi-sun-fill';
+        text.textContent = 'Light';
+        } else {
+        icon.className = 'bi bi-moon-stars-fill';
+        text.textContent = 'Dark';
+        }
+        }
+
+        // รันทันทีก่อน Page โหลด (ป้องกัน Flash)
+        loadTheme();
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
