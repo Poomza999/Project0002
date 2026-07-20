@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Final_Project\\Apartment_JaiJai\\Apartment\\Apartment.csproj": {}
+    "C:\\Users\\poomz\\Documents\\GitHub\\Project0002\\Apartment_JaiJai\\Apartment\\Apartment.csproj": {}
   },
   "projects": {
-    "D:\\Final_Project\\Apartment_JaiJai\\Apartment\\Apartment.csproj": {
+    "C:\\Users\\poomz\\Documents\\GitHub\\Project0002\\Apartment_JaiJai\\Apartment\\Apartment.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Final_Project\\Apartment_JaiJai\\Apartment\\Apartment.csproj",
+        "projectUniqueName": "C:\\Users\\poomz\\Documents\\GitHub\\Project0002\\Apartment_JaiJai\\Apartment\\Apartment.csproj",
         "projectName": "Apartment",
-        "projectPath": "D:\\Final_Project\\Apartment_JaiJai\\Apartment\\Apartment.csproj",
+        "projectPath": "C:\\Users\\poomz\\Documents\\GitHub\\Project0002\\Apartment_JaiJai\\Apartment\\Apartment.csproj",
         "packagesPath": "C:\\Users\\poomz\\.nuget\\packages\\",
-        "outputPath": "D:\\Final_Project\\Apartment_JaiJai\\Apartment\\obj\\",
+        "outputPath": "C:\\Users\\poomz\\Documents\\GitHub\\Project0002\\Apartment_JaiJai\\Apartment\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

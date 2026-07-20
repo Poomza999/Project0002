@@ -1,0 +1,15 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\Apartment",
+    "\\Apartment\\Controllers",
+    "\\Apartment\\Data",
+    "\\Apartment\\Migrations",
+    "\\Apartment\\Models",
+    "\\Apartment\\Models\\Entities",
+    "\\Apartment\\Models\\ViewModels",
+    "\\Apartment\\Views"
+  ],
+  "SelectedNode": "\\Apartment",
+  "PreviewInSolutionExplorer": false
+}
